@@ -1,0 +1,8 @@
+Django~=3.0
+djangorestframework~=3.10
+flake8~=3.7.9
+pylint~=2.4.4
+pylint-django~=2.0.13
+psycopg2~=2.8.4
+pycountry~=19.8.18
+
