@@ -1,13 +1,50 @@
 from string import punctuation
 
+from django.contrib.auth import authenticate
+from django.utils.translation import gettext_lazy as _
+
 from rest_framework import serializers
 
 from .models import DataForAuthenticateUsers
+
+class AuthTokenSerializer(serializers.Serializer):
+    username_or_email = serializers.CharField(label=_("Username or email"))
+    password = serializers.CharField(
+        label=_("Password"),
+        style={'input_type': 'password'},
+        trim_whitespace=False,
+        write_only=True
+    )
+
+    def validate(self, attrs):
+        password = attrs.get('password')
+        username_or_email = attrs.get('username_or_email')
+        if '@' in username_or_email and username_or_email:
+            username = None
+            email = username_or_email
+        elif '@' not in username_or_email and username_or_email:
+            username = username_or_email
+            email = None
+        if username and password:
+            user = authenticate(request=self.context.get('request'),
+                                username=username, password=password)
+        elif email and password:
+            user = authenticate(request=self.context.get('request'),
+                                email=email, password=password)
+        else:
+            msg = _('Must include "username" and "password".')
+            raise serializers.ValidationError(msg, code='authorization')
+        if not user:
+            msg = _('Unable to log in with provided credentials.')
+            raise serializers.ValidationError(msg, code='authorization')
+        attrs['user'] = user
+        return attrs
 
 class RegisterSerializer(serializers.ModelSerializer):
     password1 = serializers.CharField(
         write_only=True,
         required=True,
+        trim_whitespace=False,
         style={
             'input_type': 'password',
             'placeholder': 'Password'
