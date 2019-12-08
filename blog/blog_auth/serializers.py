@@ -1,11 +1,15 @@
-from string import punctuation
+from random import sample
+from string import ascii_uppercase, digits, punctuation
 
 from django.contrib.auth import authenticate
+from django.core.mail import send_mail
 from django.utils.translation import gettext_lazy as _
 
 from rest_framework import serializers
 
-from .models import DataForAuthenticateUsers
+from .models import DataForAuthenticateUsers, User
+from blog import settings
+
 
 class AuthTokenSerializer(serializers.Serializer):
     username_or_email = serializers.CharField(label=_("Username or email"))
@@ -19,26 +23,22 @@ class AuthTokenSerializer(serializers.Serializer):
     def validate(self, attrs):
         password = attrs.get('password')
         username_or_email = attrs.get('username_or_email')
-        if '@' in username_or_email and username_or_email:
-            username = None
-            email = username_or_email
-        elif '@' not in username_or_email and username_or_email:
-            username = username_or_email
-            email = None
-        if username and password:
-            user = authenticate(request=self.context.get('request'),
-                                username=username, password=password)
-        elif email and password:
-            user = authenticate(request=self.context.get('request'),
-                                email=email, password=password)
+        if username_or_email and password:
+            user = authenticate(
+                request=self.context.get('request'),
+                username=username_or_email,
+                email=username_or_email,
+                password=password
+            )
         else:
-            msg = _('Must include "username" and "password".')
+            msg = _('Must include "username" or "email" and "password".')
             raise serializers.ValidationError(msg, code='authorization')
         if not user:
             msg = _('Unable to log in with provided credentials.')
             raise serializers.ValidationError(msg, code='authorization')
         attrs['user'] = user
         return attrs
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     password1 = serializers.CharField(
@@ -58,6 +58,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             'placeholder': 'Repeat password'
         }
     )
+
     class Meta:
         model = DataForAuthenticateUsers
         fields = ['username', 'email', 'password1', 'password2']
@@ -123,4 +124,60 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         new_data_for_auth.set_password(validated_data['password1'])
         new_data_for_auth.save()
+        user = User(user_authenticate_date=new_data_for_auth)
+        user.save()
         return new_data_for_auth
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    username = serializers.CharField(
+        required=True
+    )
+    email = serializers.CharField(
+        required=True
+    )
+
+    def validate(self, attrs):
+        username = attrs.get('username')
+        email = attrs.get('email')
+        try:
+            user_auth_data = DataForAuthenticateUsers.objects.get(
+                username=username,
+                email=email
+            )
+        except DataForAuthenticateUsers.DoesNotExist:
+            raise serializers.ValidationError(
+                detail="User about this email or username don't exist."
+            )
+        attrs['user_auth_data'] = user_auth_data
+        return attrs
+
+    def get_new_password(self, password_lenght=10):
+        """
+        The method returns a new random user password.
+        """
+        numbers = ''.join(sample(digits, 2))
+        special_sign = ''.join(sample(punctuation, 2))
+        rest_password = ''.join(sample(ascii_uppercase, password_lenght - 4))
+        return rest_password + numbers + special_sign
+
+    def save(self):
+        user_auth_data = self.validated_data['user_auth_data']
+        user = User.objects.get(user_authenticate_date=user_auth_data.id)
+        new_password = self.get_new_password()
+        user_auth_data.set_password(new_password)
+        user_auth_data.save()
+        message = f"""
+        Hi {user_auth_data.username}.
+        You reset your password.
+        Your new password: {new_password}
+        To change the password, enter in the user profile.
+        Regards, blog administration.
+        """
+        send_mail(
+            subject='Password Reset',
+            message=message,
+            from_email="Elo",
+            recipient_list=['przemyslaw.rozycki1996@gmail.com']
+        )
+        return new_password

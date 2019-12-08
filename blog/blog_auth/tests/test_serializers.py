@@ -1,12 +1,19 @@
 from django.test import TestCase
 from django.contrib.auth.hashers import check_password
 
-from rest_framework.exceptions import ErrorDetail
 
-from blog_auth.serializers import RegisterSerializer
-from blog_auth.models import DataForAuthenticateUsers
+from blog_auth.serializers import AuthTokenSerializer, RegisterSerializer, ResetPasswordSerializer
+from blog_auth.models import DataForAuthenticateUsers, User
 
-class TestRegisterSerializer(TestCase):
+
+class SerializerMixIn:
+
+    def get_serializer(self):
+        return self.serializer(data=self.data)
+
+
+class TestRegisterSerializer(TestCase, 
+                             SerializerMixIn):
 
     def setUp(self):
         self.serializer = RegisterSerializer
@@ -18,9 +25,6 @@ class TestRegisterSerializer(TestCase):
         }
         return self.data
 
-    def get_serializer(self):
-        return self.serializer(data=self.data)
-
     def test_with_correct_data(self):
         serializer = self.get_serializer()
         serializer.is_valid()
@@ -31,7 +35,8 @@ class TestRegisterSerializer(TestCase):
         )
         self.assertEqual(new_user.email, self.data['email'])
         self.assertEqual(new_user.username, self.data['username'])
-        self.assertTrue(check_password(
+        self.assertTrue(
+            check_password(
                 password=self.data['password1'],
                 encoded=new_user.password
             )
@@ -163,3 +168,151 @@ class TestRegisterSerializer(TestCase):
             serializer.errors['non_field_errors'][0],
             "Two password mismatch."
         )
+
+
+class TestAuthTokenSerializer(TestCase,
+                              SerializerMixIn):
+    
+    def setUp(self):
+        self.registr_data = {
+            'username': 'tester',
+            'email': 'tester123@gmail.com',
+        }
+        self.data = {
+            'username_or_email': self.registr_data['username'],
+            'password': 'Tester123,,.'
+        }
+        self.user = DataForAuthenticateUsers(**self.registr_data)
+        self.user.set_password(self.data['password'])
+        self.user.save()
+        self.serializer = AuthTokenSerializer
+
+    def test_login_with_correct_username_and_password(self):
+        serializer = self.get_serializer()
+        self.assertTrue(serializer.is_valid())
+        user = serializer.validated_data['user']
+        self.assertEqual(user.username, self.registr_data['username'])
+        self.assertEqual(user.email, self.registr_data['email'])
+        self.assertTrue(check_password(
+            password=self.data['password'],
+            encoded=user.password
+        ))
+
+    def test_login_with_correct_email_and_password(self):
+        self.data['username_or_email'] = self.registr_data['email']
+        serializer = self.get_serializer()
+        self.assertTrue(serializer.is_valid())
+        user = serializer.validated_data['user']
+        self.assertEqual(user.username, self.registr_data['username'])
+        self.assertEqual(user.email, self.registr_data['email'])
+        self.assertTrue(
+            check_password(
+                password=self.data['password'],
+                encoded=user.password
+            )
+        )
+
+    def test_with_bad_login_or_email(self):
+        self.data['username_or_email'] = "bad_login_or_email"
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors["non_field_errors"][0]), 
+            'Unable to log in with provided credentials.'
+        )
+
+    def test_with_bad_password(self):
+        self.data['password'] = "bad_password"
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors["non_field_errors"][0]), 
+            'Unable to log in with provided credentials.'
+        )
+
+    def test_with_empty_username_or_email_field(self):
+        del self.data['username_or_email']
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors["username_or_email"][0]), 
+            'This field is required.'
+        )
+
+    def test_with_empty_password_field(self):
+        del self.data['password']
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors["password"][0]), 
+            'This field is required.'
+        )
+
+
+class TestResetPasswordSerializer(TestCase,
+                                  SerializerMixIn):
+
+    def setUp(self):
+        self.data = {
+            'username': 'Tester',
+            'email': 'maria.pazdziora1998@gmail.com'
+        }
+        self.serializer = ResetPasswordSerializer
+        self.user_auth = DataForAuthenticateUsers(**self.data)
+        self.user_auth.set_password("Testter123.,")
+        self.user_auth.save()
+        self.user = User(user_authenticate_date=self.user_auth)
+        self.user.save()
+
+    def test_with_correct_data(self):
+        serializer = self.get_serializer()
+        self.assertTrue(serializer.is_valid())
+        new_password = serializer.save()
+        user_auth = DataForAuthenticateUsers.objects.get(username=self.data['username'])
+        self.assertTrue(
+            check_password(
+                password=new_password,
+                encoded=user_auth.password
+            )
+        )
+
+    def test_with_bad_username(self):
+        self.data['username'] = 'bad_username'
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors["non_field_errors"][0]), 
+            "User about this email or username don't exist."
+        )
+
+    def test_with_bad_email(self):
+        self.data['email'] = 'bad_email'
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors["non_field_errors"][0]), 
+            "User about this email or username don't exist."
+        )
+
+    def test_with_empty_email_field(self):
+        del self.data['email']
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors["email"][0]), 
+            "This field is required."
+        )
+
+    def test_with_empty_username_field(self):
+        del self.data['username']
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors["username"][0]), 
+            "This field is required."
+        )
+
+        
+        
+        
+

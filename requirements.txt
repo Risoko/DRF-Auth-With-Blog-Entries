@@ -5,4 +5,5 @@ pylint~=2.4.4
 pylint-django~=2.0.13
 psycopg2~=2.8.4
 pycountry~=19.8.18
+python-decouple~=3.3
 

@@ -111,7 +111,7 @@ class User(models.Model):
             subject=subject,
             message=message, 
             from_email=from_email, 
-            recipient_list=[self.user_authenticate_date.email], 
+            recipient_list=[self.user_authenticate_date.email,],
             **kwargs
         )
 
@@ -131,7 +131,7 @@ class User(models.Model):
         return adult_age <= date_now
 
     def __str__(self):
-        return f'User(Nick={self.get_nick()}, Fullname={self.get_full_name()})'
+        return self.user_authenticate_date.email #f'User(Nick={self.get_nick()}, Fullname={self.get_full_name()})'
 
     class Meta:
         verbose_name = _('User')

@@ -1,4 +1,3 @@
-from rest_framework import parsers, renderers
 from rest_framework.mixins import CreateModelMixin
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ViewSet
@@ -21,10 +20,9 @@ class ObtainAuthToken(ViewSet):
         return Response({'token': token.key})
 
 
-
 class RegistrationView(CreateModelMixin,
                        GenericViewSet):
     serializer_class = RegisterSerializer
-    queryset = DataForAuthenticateUsers.objects.all()
     permission_classes = [IsNotAuthenticated, ]
+
 
