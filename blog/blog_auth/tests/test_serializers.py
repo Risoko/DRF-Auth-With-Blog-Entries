@@ -2,8 +2,10 @@ from django.test import TestCase
 from django.contrib.auth.hashers import check_password
 
 
-from blog_auth.serializers import AuthTokenSerializer, RegisterSerializer, ResetPasswordSerializer
-from blog_auth.models import DataForAuthenticateUsers, User
+from blog_auth.serializers import (
+AuthTokenSerializer, RegisterSerializer, ResetPasswordSerializer, CreateProfileUserSerializer
+)
+from blog_auth.models import DataForAuthenticateUsers, User, PersonalUsersData
 
 
 class SerializerMixIn:
@@ -311,6 +313,10 @@ class TestResetPasswordSerializer(TestCase,
             str(serializer.errors["username"][0]), 
             "This field is required."
         )
+
+
+class TestCreateUserProfileSerialiser(TestCase):
+    pass
 
         
         

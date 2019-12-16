@@ -180,3 +180,8 @@ class ResetPasswordSerializer(serializers.Serializer):
             from_email="Administration blog."
         )
         return new_password
+
+
+class CreateProfileUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        pass
