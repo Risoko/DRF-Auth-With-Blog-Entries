@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ViewSet
 from rest_framework.authtoken.models import Token
 
-from .serializers import AuthTokenSerializer, RegisterSerializer
+from .serializers import AuthTokenSerializer, RegisterSerializer, ResetPasswordSerializer
 from .models import DataForAuthenticateUsers
 from .permisions import IsNotAuthenticated
 
@@ -24,5 +24,11 @@ class RegistrationView(CreateModelMixin,
                        GenericViewSet):
     serializer_class = RegisterSerializer
     permission_classes = [IsNotAuthenticated, ]
+
+
+class ResetPasswordView(CreateModelMixin,
+                    GenericViewSet):
+    serializer_class = ResetPasswordSerializer
+    permission_classes = [IsNotAuthenticated]
 
 

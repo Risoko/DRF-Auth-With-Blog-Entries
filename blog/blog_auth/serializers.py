@@ -174,10 +174,9 @@ class ResetPasswordSerializer(serializers.Serializer):
         To change the password, enter in the user profile.
         Regards, blog administration.
         """
-        send_mail(
+        user.email_user(
             subject='Password Reset',
             message=message,
-            from_email="Elo",
-            recipient_list=['przemyslaw.rozycki1996@gmail.com']
+            from_email="Administration blog."
         )
         return new_password
