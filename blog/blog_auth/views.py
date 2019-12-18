@@ -1,10 +1,12 @@
-from rest_framework.mixins import CreateModelMixin
+from rest_framework import status
+from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, UpdateModelMixin
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet, ViewSet
+from rest_framework.viewsets import GenericViewSet, ViewSet, ModelViewSet
 from rest_framework.authtoken.models import Token
 
-from .serializers import AuthTokenSerializer, RegisterSerializer, ResetPasswordSerializer
-from .models import DataForAuthenticateUsers
+from .serializers import AuthTokenSerializer, RegisterSerializer, ResetPasswordSerializer, CreateProfileUserSerializer
+from .models import DataForAuthenticateUsers, PersonalUsersData
 from .permisions import IsNotAuthenticated
 
 
@@ -27,8 +29,27 @@ class RegistrationView(CreateModelMixin,
 
 
 class ResetPasswordView(CreateModelMixin,
-                    GenericViewSet):
+                        GenericViewSet):
     serializer_class = ResetPasswordSerializer
     permission_classes = [IsNotAuthenticated]
+
+
+class CreateProfileUserView(GenericViewSet,
+                            CreateModelMixin,
+                            ):
+    serializer_class = CreateProfileUserSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = PersonalUsersData.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid()
+        user = request.user
+        user.user_personal_data = serializer.save()
+        user.save()
+        return Response(
+            data=serializer.data, 
+            status=status.HTTP_201_CREATED
+        )
 
 

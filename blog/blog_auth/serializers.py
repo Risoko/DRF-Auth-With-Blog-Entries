@@ -184,14 +184,17 @@ class ResetPasswordSerializer(serializers.Serializer):
 class CreateProfileUserSerializer(serializers.ModelSerializer):
     birth_day = serializers.IntegerField(
         min_value=1,
-        max_value=31    
+        max_value=31,
+        write_only=True  
     )
     birth_month = serializers.ChoiceField(
-        choices=[(number, number) for number in range(1, 13)]
+        choices=[(number, number) for number in range(1, 13)],
+        write_only=True
     )
     birth_year = serializers.IntegerField(
         min_value=datetime.now().year - 100,
-        max_value=datetime.now().year - 5   
+        max_value=datetime.now().year - 5,
+        write_only=True
     )
     class Meta:
         model = PersonalUsersData
