@@ -2,13 +2,12 @@ from random import sample
 from string import ascii_uppercase, digits, punctuation
 
 from django.contrib.auth import authenticate
-from django.core.mail import send_mail
 from django.utils.translation import gettext_lazy as _
 
 from rest_framework import serializers
 
-from .models import DataForAuthenticateUsers, User
-from blog import settings
+from .models import DataForAuthenticateUsers, User, PersonalUsersData
+
 
 
 class AuthTokenSerializer(serializers.Serializer):
@@ -90,14 +89,14 @@ class RegisterSerializer(serializers.ModelSerializer):
             )
         )
 
-    def validate(self, valide_data):
-        password1 = valide_data.get('password1')
-        password2 = valide_data.get('password2')
+    def validate(self, validated_data):
+        password1 = validated_data.get('password1')
+        password2 = validated_data.get('password2')
         if password1 and password2 and password1 != password2:
             raise serializers.ValidationError(
                 detail="Two password mismatch."
             )
-        return valide_data
+        return validated_data
         
     def _checks_password_for_at_least_two_digits(self, password):
         """
@@ -183,5 +182,32 @@ class ResetPasswordSerializer(serializers.Serializer):
 
 
 class CreateProfileUserSerializer(serializers.ModelSerializer):
+    birth_day = serializers.CharField()
+    birth_month = serializers.ChoiceField(
+        choices=[(str(number), str(number)) for number in range(1, 13)]
+    )
+    birth_year = serializers.CharField()
+
     class Meta:
-        pass
+        model = PersonalUsersData
+        fields = [
+            'first_name', 'last_name',
+            'nick', 'country', 'sex',
+            'birth_day', 'birth_month',
+            'birth_year'
+        ]
+
+    def validate_nick(self, data):
+        if data.isdigit():
+            raise serializers.ValidationError(
+                detail='Nick can not be just a number.'
+            )
+        return data
+
+    def validate_birth_day(self, data):
+        if not data.isdigit():
+            raise serializers.ValidationError(
+                detail="This field must contain only digit."
+            )
+        return data
+

@@ -491,7 +491,7 @@ class TestCreateUserProfileSerialiser(TestCase,
         serializer = self.get_serializer()
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
-            str(serializer.errors)['bith_day'][0],
+            str(serializer.errors['birth_day'][0]),
             "This field must contain only digit."
         )
 
@@ -500,7 +500,7 @@ class TestCreateUserProfileSerialiser(TestCase,
         serializer = self.get_serializer()
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
-            str(serializer.errors)['bith_day'][0],
+            str(serializer.errors['birth_day'][0]),
             "A month has a maximum of 31 days."
         )
 
@@ -509,7 +509,7 @@ class TestCreateUserProfileSerialiser(TestCase,
         serializer = self.get_serializer()
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
-            str(serializer.errors)['bith_day'][0],
+            str(serializer.errors['birth_day'][0]),
             "A month has a minimum of 1 day."
         )
 
@@ -518,7 +518,7 @@ class TestCreateUserProfileSerialiser(TestCase,
         serializer = self.get_serializer()
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
-            str(serializer.errors)['bith_year'][0],
+            str(serializer.errors['birth_year'][0]),
             "This field must contain only digit."
         )
 
@@ -527,7 +527,7 @@ class TestCreateUserProfileSerialiser(TestCase,
         serializer = self.get_serializer()
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
-            str(serializer.errors)['bith_year'][0],
+            str(serializer.errors['birth_year'][0]),
             "You couldn't have been born this year (is too big)."
         )
 
@@ -536,7 +536,7 @@ class TestCreateUserProfileSerialiser(TestCase,
         serializer = self.get_serializer()
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
-            str(serializer.errors)['bith_year'][0],
+            str(serializer.errors['birth_year'][0]),
             "You couldn't have been born this year (is too small)."
         )
 
