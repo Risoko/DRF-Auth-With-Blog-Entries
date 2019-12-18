@@ -183,12 +183,17 @@ class ResetPasswordSerializer(serializers.Serializer):
 
 
 class CreateProfileUserSerializer(serializers.ModelSerializer):
-    birth_day = serializers.CharField()
-    birth_month = serializers.ChoiceField(
-        choices=[(str(number), str(number)) for number in range(1, 13)]
+    birth_day = serializers.IntegerField(
+        min_value=1,
+        max_value=31    
     )
-    birth_year = serializers.CharField()
-
+    birth_month = serializers.ChoiceField(
+        choices=[(number, number) for number in range(1, 13)]
+    )
+    birth_year = serializers.IntegerField(
+        min_value=datetime.now().year - 100,
+        max_value=datetime.now().year - 5   
+    )
     class Meta:
         model = PersonalUsersData
         fields = [
@@ -205,33 +210,19 @@ class CreateProfileUserSerializer(serializers.ModelSerializer):
             )
         return data
 
-    def validate_birth_day(self, data):
-        if not data.isdigit():
+    def validate_first_name(self, data):
+        if not data.isalpha():
             raise serializers.ValidationError(
-                detail="This field must contain only digit."
+                detail="First name must contain only letters."
             )
-        if int(data) > 31:
-            raise serializers.ValidationError(
-                detail="A month has a maximum of 31 days."
-            )
-        if int(data) <= 0:
-            raise serializers.ValidationError(
-                detail="A month has a minimum of 1 day."
-            )
-        return data
+        return data.capitalize()
 
-    def validate_birth_year(self, data):
-        if not data.isdigit():
+    def validate_last_name(self, data):
+        if not data.isalpha():
             raise serializers.ValidationError(
-                detail="This field must contain only digit."
+                detail="Last name must contain only letters."
             )
-        if int(data) >= datetime.now().year - 3:
-            raise serializers.ValidationError(
-                detail="You couldn't have been born this year (is too big)."
-            )
-        if int(data) < datetime.now().year - 110:
-            raise serializers.ValidationError(
-                detail="You couldn't have been born this year (is too small)."
-            )
-        return data
+        return data.capitalize()
 
+    def create(self, validated_data):
+        return PersonalUsersData.objects.create_profile(**validated_data)

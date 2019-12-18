@@ -8,6 +8,8 @@ from django.utils.translation import gettext_lazy as _
 
 from pycountry import countries
 
+from .managers import CreateUserProfilManager
+
 
 class DataForAuthenticateUsers(AbstractUser):
     first_name = None
@@ -68,6 +70,7 @@ class PersonalUsersData(models.Model):
         verbose_name=_('number article'),
         default=0
     )
+    objects = CreateUserProfilManager()
 
     class Meta:
         verbose_name = _('Personal user data')

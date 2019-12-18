@@ -324,11 +324,11 @@ class TestCreateUserProfileSerialiser(TestCase,
             "first_name": 'Przemyslaw',
             "last_name": "Rozycki",
             "nick": "Tester",
-            "country": "Pl",
+            "country": "PL",
             "sex": "M",
-            "birth_day": "12",
-            "birth_month": "March",
-            "birth_year": "1996"
+            "birth_day": 12,
+            "birth_month": 3,
+            "birth_year": 1996
         }
         self.serializer = CreateProfileUserSerializer
 
@@ -374,7 +374,7 @@ class TestCreateUserProfileSerialiser(TestCase,
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
             str(serializer.errors['first_name'][0]),
-            'Ensure this field has no more than 150 characters.'
+            'Ensure this field has no more than 120 characters.'
         )
 
     def test_when_first_name_has_digits(self):
@@ -427,7 +427,7 @@ class TestCreateUserProfileSerialiser(TestCase,
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
             str(serializer.errors['last_name'][0]),
-            'Ensure this field has no more than 150 characters.'
+            'Ensure this field has no more than 120 characters.'
         )
 
     def test_when_last_name_has_digits(self):
@@ -463,7 +463,7 @@ class TestCreateUserProfileSerialiser(TestCase,
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
             str(serializer.errors['nick'][0]),
-            'Ensure this field has no more than 150 characters.'
+            'Ensure this field has no more than 120 characters.'
         )
 
     def test_nick_when_is_digit(self):
@@ -492,7 +492,7 @@ class TestCreateUserProfileSerialiser(TestCase,
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
             str(serializer.errors['birth_day'][0]),
-            "This field must contain only digit."
+            "A valid integer is required."
         )
 
     def test_when_birth_day_is_too_big(self):
@@ -501,7 +501,7 @@ class TestCreateUserProfileSerialiser(TestCase,
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
             str(serializer.errors['birth_day'][0]),
-            "A month has a maximum of 31 days."
+            "Ensure this value is less than or equal to 31."
         )
 
     def test_when_birth_day_is_too_small(self):
@@ -510,7 +510,7 @@ class TestCreateUserProfileSerialiser(TestCase,
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
             str(serializer.errors['birth_day'][0]),
-            "A month has a minimum of 1 day."
+            "Ensure this value is greater than or equal to 1."
         )
 
     def test_when_birth_year_is_letter(self):
@@ -519,25 +519,25 @@ class TestCreateUserProfileSerialiser(TestCase,
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
             str(serializer.errors['birth_year'][0]),
-            "This field must contain only digit."
+            "A valid integer is required."
         )
 
     def test_when_birth_year_is_too_big(self):
-        self.data["birth_year"] = str(datetime.now().year)
+        self.data["birth_year"] = datetime.now().year 
         serializer = self.get_serializer()
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
             str(serializer.errors['birth_year'][0]),
-            "You couldn't have been born this year (is too big)."
+            f'Ensure this value is less than or equal to {datetime.now().year - 5}.'
         )
 
     def test_when_birth_year_is_too_small(self):
-        self.data["birth_year"] = str(datetime.now().year - 110)
+        self.data["birth_year"] = datetime.now().year - 110
         serializer = self.get_serializer()
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
             str(serializer.errors['birth_year'][0]),
-            "You couldn't have been born this year (is too small)."
+            f"Ensure this value is greater than or equal to {datetime.now().year - 100}."
         )
 
 
