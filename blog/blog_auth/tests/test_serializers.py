@@ -1,6 +1,7 @@
+from datetime import datetime
+
 from django.test import TestCase
 from django.contrib.auth.hashers import check_password
-
 
 from blog_auth.serializers import (
 AuthTokenSerializer, RegisterSerializer, ResetPasswordSerializer, CreateProfileUserSerializer
@@ -484,6 +485,62 @@ class TestCreateUserProfileSerialiser(TestCase,
             serializer2.errors['nick'][0],
             "A user with that nick already exists."
         )
+
+    def test_when_birth_day_is_letter(self):
+        self.data["birth_day"] = "as"
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors)['bith_day'][0],
+            "This field must contain only digit."
+        )
+
+    def test_when_birth_day_is_too_big(self):
+        self.data["birth_day"] = "32"
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors)['bith_day'][0],
+            "A month has a maximum of 31 days."
+        )
+
+    def test_when_birth_day_is_too_small(self):
+        self.data["birth_day"] = "0"
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors)['bith_day'][0],
+            "A month has a minimum of 1 day."
+        )
+
+    def test_when_birth_year_is_letter(self):
+        self.data["birth_year"] = "as"
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors)['bith_year'][0],
+            "This field must contain only digit."
+        )
+
+    def test_when_birth_year_is_too_big(self):
+        self.data["birth_year"] = str(datetime.now().year)
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors)['bith_year'][0],
+            "You couldn't have been born this year (is too big)."
+        )
+
+    def test_when_birth_year_is_too_small(self):
+        self.data["birth_year"] = str(datetime.now().year) - 110
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors)['bith_year'][0],
+            "You couldn't have been born this year (is too small)."
+        )
+
+
 
 
 
