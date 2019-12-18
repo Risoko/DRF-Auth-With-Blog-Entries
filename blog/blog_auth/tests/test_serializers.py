@@ -315,10 +315,179 @@ class TestResetPasswordSerializer(TestCase,
         )
 
 
-class TestCreateUserProfileSerialiser(TestCase):
-    pass
+class TestCreateUserProfileSerialiser(TestCase,
+                                      SerializerMixIn):
+    
+    def setUp(self):
+        self.data = {
+            "first_name": 'Przemyslaw',
+            "last_name": "Rozycki",
+            "nick": "Tester",
+            "country": "Pl",
+            "sex": "M",
+            "birth_day": "12",
+            "birth_month": "March",
+            "birth_year": "1996"
+        }
+        self.serializer = CreateProfileUserSerializer
 
-        
+    def test_with_correct_data(self):
+        serializer = self.get_serializer()
+        self.assertTrue(serializer.is_valid())
+        serializer.save()
+        self.assertEqual(
+            serializer.validated_data,
+            self.data
+        )
+
+    def test_with_empty_first_name(self):
+        del self.data["first_name"]
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors["first_name"][0]), 
+            "This field is required."
+        )
+
+    def test_with_first_name_when_letters_are_not_the_same(self):
+        self.data["first_name"] = "PrzEmYslaw"
+        serializer = self.get_serializer()
+        self.assertTrue(serializer.is_valid())
+        self.assertEqual(
+            self.data['first_name'].capitalize(),
+            serializer.validated_data['first_name']
+        )
+
+    def test_with_first_name_too_short(self):
+        self.data["first_name"] = 'It'
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors['first_name'][0]),
+            "Ensure this value has at least 3 characters."
+        )
+
+    def test_with_first_name_too_long(self):
+        self.data["first_name"] = 'It' * 100
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors['first_name'][0]),
+            'Ensure this field has no more than 150 characters.'
+        )
+
+    def test_when_first_name_has_digits(self):
+        self.data["first_name"] = "Przemyslaw123"
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors["first_name"][0]),
+            "First name must contain only letters."
+        )
+    
+    def test_when_first_name_has_special_sign(self):
+        self.data["first_name"] = "Przemys_law"
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors["first_name"][0]),
+            "First name must contain only letters."
+        )
+    def test_with_empty_last_name(self):
+        del self.data["last_name"]
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors["last_name"][0]), 
+            "This field is required."
+        )
+
+    def test_with_last_name_when_letters_are_not_the_same(self):
+        self.data["last_name"] = "RoZycki"
+        serializer = self.get_serializer()
+        self.assertTrue(serializer.is_valid())
+        self.assertEqual(
+            self.data['last_name'].capitalize(),
+            serializer.validated_data['last_name']
+        )
+
+    def test_with_last_name_too_short(self):
+        self.data["last_name"] = 'It'
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors['last_name'][0]),
+            "Ensure this value has at least 3 characters."
+        )
+
+    def test_with_last_name_too_long(self):
+        self.data["last_name"] = 'It' * 100
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors['last_name'][0]),
+            'Ensure this field has no more than 150 characters.'
+        )
+
+    def test_when_last_name_has_digits(self):
+        self.data["last_name"] = "Rozycki123"
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors["last_name"][0]),
+            "Last name must contain only letters."
+        )
+    
+    def test_when_last_name_has_special_sign(self):
+        self.data["last_name"] = "Rozyc_ki"
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors["last_name"][0]),
+            "Last name must contain only letters."
+        )
+
+    def test_with_nick_too_short(self):
+        self.data["nick"] = 'It'
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors['nick'][0]),
+            "Ensure this value has at least 3 characters."
+        )
+
+    def test_with_nick_too_long(self):
+        self.data["nick"] = 'It' * 100
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors['nick'][0]),
+            'Ensure this field has no more than 150 characters.'
+        )
+
+    def test_nick_when_is_digit(self):
+        self.data["nick"] = "123456"
+        serializer = self.get_serializer()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors['nick'][0]),
+            'Nick can not be just a number.'
+        )
+
+    def test_with_exist_nick(self):
+        serializer = self.get_serializer()
+        self.assertTrue(serializer.is_valid())
+        serializer.save()
+        serializer2 = self.get_serializer()
+        self.assertFalse(serializer2.is_valid())
+        self.assertEqual(
+            serializer2.errors['nick'][0],
+            "A user with that nick already exists."
+        )
+
+
+
+    
         
         
 
