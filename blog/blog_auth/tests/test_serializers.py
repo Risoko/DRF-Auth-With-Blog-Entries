@@ -532,7 +532,7 @@ class TestCreateUserProfileSerialiser(TestCase,
         )
 
     def test_when_birth_year_is_too_small(self):
-        self.data["birth_year"] = str(datetime.now().year) - 110
+        self.data["birth_year"] = str(datetime.now().year - 110)
         serializer = self.get_serializer()
         self.assertFalse(serializer.is_valid())
         self.assertEqual(

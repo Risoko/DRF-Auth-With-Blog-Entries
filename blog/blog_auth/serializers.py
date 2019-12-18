@@ -1,3 +1,4 @@
+from datetime import datetime
 from random import sample
 from string import ascii_uppercase, digits, punctuation
 
@@ -208,6 +209,29 @@ class CreateProfileUserSerializer(serializers.ModelSerializer):
         if not data.isdigit():
             raise serializers.ValidationError(
                 detail="This field must contain only digit."
+            )
+        if int(data) > 31:
+            raise serializers.ValidationError(
+                detail="A month has a maximum of 31 days."
+            )
+        if int(data) <= 0:
+            raise serializers.ValidationError(
+                detail="A month has a minimum of 1 day."
+            )
+        return data
+
+    def validate_birth_year(self, data):
+        if not data.isdigit():
+            raise serializers.ValidationError(
+                detail="This field must contain only digit."
+            )
+        if int(data) >= datetime.now().year - 3:
+            raise serializers.ValidationError(
+                detail="You couldn't have been born this year (is too big)."
+            )
+        if int(data) < datetime.now().year - 110:
+            raise serializers.ValidationError(
+                detail="You couldn't have been born this year (is too small)."
             )
         return data
 
