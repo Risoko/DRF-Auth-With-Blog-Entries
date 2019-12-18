@@ -8,7 +8,7 @@ router = DefaultRouter()
 router.register(r'registration', RegistrationView, basename='registration')
 router.register(r'login', ObtainAuthToken, basename='login')
 router.register(r'reset_password', ResetPasswordView, basename='reset_password')
-router.register(r'account/create_profile', CreateProfileUserView, basename='create_profile')
+router.register(r'create_profile', CreateProfileUserView, basename='create_profile')
 
 
 urlpatterns = [

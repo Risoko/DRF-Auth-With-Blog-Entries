@@ -3,11 +3,52 @@ from random import sample
 from string import ascii_uppercase, digits, punctuation
 
 from django.contrib.auth import authenticate
+from django.contrib.auth.hashers import check_password
 from django.utils.translation import gettext_lazy as _
 
 from rest_framework import serializers
 
 from .models import DataForAuthenticateUsers, User, PersonalUsersData
+
+class PasswordValidator:
+
+    def __init__(self, min_size):
+        self.min_size = min_size
+
+    def __call__(self, password):
+        if not self.check_password(password):
+            raise serializers.ValidationError(
+                detail='Password must have a minimum of 1 upper case letter, 2 digits and 2 special characters.'
+            )
+
+    def check_password(self, password):
+        return all(
+            (
+                self._checks_password_for_at_least_two_digits(password),
+                self._checks_passwords_it_has_at_last_two_special_sign(password),
+                self._checks_passwords_it_has_at_least_one_upper_letter(password),
+                len(password) > self.min_size
+            )
+        )
+
+    def _checks_password_for_at_least_two_digits(self, password):
+        """
+        Method return true if the password contains at least two digits.
+        """
+        return len(list(sign for sign in password if sign.isdigit())) >= 2
+
+    def _checks_passwords_it_has_at_least_one_upper_letter(self, password):
+        """
+        Method return true if the password contains at least one upper letter.
+        """
+        return any(sign.isupper() for sign in password)
+
+    def _checks_passwords_it_has_at_last_two_special_sign(self, password):
+        """
+        Method return true if the password contains at least two special sign.
+        """
+        return len(list(sign for sign in password if sign in punctuation)) >= 2
+
 
 
 class AuthTokenSerializer(serializers.Serializer):
@@ -52,6 +93,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(
         write_only=True,
         required=True,
+        validators=[PasswordValidator(8)],
         style={
             'input_type': 'password',
             'placeholder': 'Repeat password'
@@ -69,26 +111,6 @@ class RegisterSerializer(serializers.ModelSerializer):
             )
         return username
 
-    def validate_password2(self, password):
-        if not self.check_password(password):
-            raise serializers.ValidationError(
-                detail='Password must have a minimum of 1 upper case letter, 2 digits and 2 special characters.'
-            )
-        elif len(password) < 8:
-            raise serializers.ValidationError(
-                detail="This password is too short. It must contain at least 8 characters."
-            )
-        return password
-
-    def check_password(self, password):
-        return all(
-            (
-                self._checks_password_for_at_least_two_digits(password),
-                self._checks_passwords_it_has_at_last_two_special_sign(password),
-                self._checks_passwords_it_has_at_least_one_upper_letter(password)
-            )
-        )
-
     def validate(self, validated_data):
         password1 = validated_data.get('password1')
         password2 = validated_data.get('password2')
@@ -98,24 +120,6 @@ class RegisterSerializer(serializers.ModelSerializer):
             )
         return validated_data
         
-    def _checks_password_for_at_least_two_digits(self, password):
-        """
-        Method return true if the password contains at least two digits.
-        """
-        return len(list(sign for sign in password if sign.isdigit())) >= 2
-
-    def _checks_passwords_it_has_at_least_one_upper_letter(self, password):
-        """
-        Method return true if the password contains at least one upper letter.
-        """
-        return any(sign.isupper() for sign in password)
-
-    def _checks_passwords_it_has_at_last_two_special_sign(self, password):
-        """
-        Method return true if the password contains at least two special sign.
-        """
-        return len(list(sign for sign in password if sign in punctuation)) >= 2
-
     def create(self, validated_data):
         new_data_for_auth = DataForAuthenticateUsers(
             username=validated_data['username'],
@@ -229,3 +233,96 @@ class CreateProfileUserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return PersonalUsersData.objects.create_profile(**validated_data)
+
+
+class AccountDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PersonalUsersData
+        fields = "__all__"
+
+class AccountChangePassword(serializers.Serializer):
+    old_password = serializers.CharField(
+        write_only=True,
+        required=True,
+        trim_whitespace=False,
+        style={
+            'input_type': 'password',
+            'placeholder': 'Password'
+        }
+    )
+    new_password1 = serializers.CharField(
+        write_only=True,
+        required=True,
+        trim_whitespace=False,
+        style={
+            'input_type': 'password',
+            'placeholder': 'Password'
+        }
+    )
+    new_password2 = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[PasswordValidator(8)],
+        style={
+            'input_type': 'password',
+            'placeholder': 'Repeat password'
+        }
+    )
+
+    def validate(self, validated_data):
+        password1 = validated_data.get('password1')
+        password2 = validated_data.get('password2')
+        if password1 and password2 and password1 != password2:
+            raise serializers.ValidationError(
+                detail="Two password mismatch."
+            )
+        return validated_data
+
+    def validate_old_password(self, data):
+        user_auth_data = self.context.get('request').user
+        if not check_password(password=data, encoded=user_auth_data.password):
+            raise serializers.ValidationError(
+                detail="Old password mismatch."
+            )
+        return user_auth_data
+
+    def save(self):
+        user_auth_data = self.validated_data['old_password']
+        user_auth_data.set_password(self.validated_data['password2'])
+        user_auth_data.save()
+        user = User.objects.get(user_authenticate_date=user_auth_data.id)
+        user.email_user(
+            subject="Change Password.",
+            message="You have changed password if you do not urgently reset the password",
+            from_email="Blog administration."
+        )
+
+
+class AccountChangeEmail(serializers.Serializer):
+    old_email = serializers.EmailField()
+    new_email = serializers.EmailField()
+
+    def validate_old_email(self, data):
+        user_auth_data = self.context.get('request').user
+        if user_auth_data.email != data:
+            raise serializers.ValidationError(
+                detail="Old email mismatch."
+            )
+
+    def save(self):
+        user_auth_data = self.validated_data['old_email']
+        user_auth_data.email = self.validated_data['new_mail']
+        user_auth_data.save()
+        user = User.objects.get(user_authenticate_date=user_auth_data.id)
+        user.email_user(
+            subject="Change Email.",
+            message="You have changed email if you do not urgently write to support.",
+            from_email="Blog administration."
+        )
+
+
+
+
+
+        
+    
