@@ -10,7 +10,6 @@ from rest_framework import serializers
 from .models import DataForAuthenticateUsers, User, PersonalUsersData
 
 
-
 class AuthTokenSerializer(serializers.Serializer):
     username_or_email = serializers.CharField(label=_("Username or email"))
     password = serializers.CharField(
@@ -215,6 +214,7 @@ class CreateProfileUserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 detail="First name must contain only letters."
             )
+
         return data.capitalize()
 
     def validate_last_name(self, data):

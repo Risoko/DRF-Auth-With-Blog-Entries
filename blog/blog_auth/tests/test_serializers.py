@@ -365,7 +365,7 @@ class TestCreateUserProfileSerialiser(TestCase,
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
             str(serializer.errors['first_name'][0]),
-            "Ensure this value has at least 3 characters."
+            "Ensure this field has at least 3 characters."
         )
 
     def test_with_first_name_too_long(self):
@@ -418,7 +418,7 @@ class TestCreateUserProfileSerialiser(TestCase,
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
             str(serializer.errors['last_name'][0]),
-            "Ensure this value has at least 3 characters."
+            "Ensure this field has at least 3 characters."
         )
 
     def test_with_last_name_too_long(self):
@@ -454,7 +454,7 @@ class TestCreateUserProfileSerialiser(TestCase,
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
             str(serializer.errors['nick'][0]),
-            "Ensure this value has at least 3 characters."
+            "Ensure this field has at least 3 characters."
         )
 
     def test_with_nick_too_long(self):

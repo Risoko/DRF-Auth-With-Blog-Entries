@@ -5,6 +5,7 @@ from django.core.mail import send_mail
 from django.contrib.auth.models import AbstractUser
 from django.utils.timezone import datetime
 from django.utils.translation import gettext_lazy as _
+from django.core.validators import MinLengthValidator
 
 from pycountry import countries
 
@@ -38,16 +39,19 @@ class PersonalUsersData(models.Model):
     COUNTRY_CHOICES = [(country.alpha_2, country.name) for country in countries]
     first_name = models.CharField(
         max_length=120,
-        verbose_name=_('first name')
+        verbose_name=_('first name'),
+        validators=[MinLengthValidator(3)]
     )
     last_name = models.CharField(
         max_length=120,
-        verbose_name=_('last name')
+        verbose_name=_('last name'),
+        validators=[MinLengthValidator(3)]
     )
     nick = models.CharField(
         max_length=120,
         verbose_name=_('nick'),
         unique=True,
+        validators=[MinLengthValidator(3)],
         error_messages={
             'unique': _("A user with that nick already exists."),
         }
