@@ -20,6 +20,11 @@ class PasswordValidator:
             raise serializers.ValidationError(
                 detail='Password must have a minimum of 1 upper case letter, 2 digits and 2 special characters.'
             )
+        if len(password) < self.min_size:
+            msg = f"Ensure this value has at least {self.min_size} characters."
+            raise serializers.ValidationError(
+                detail=msg
+            )
 
     def check_password(self, password):
         return all(
@@ -27,7 +32,6 @@ class PasswordValidator:
                 self._checks_password_for_at_least_two_digits(password),
                 self._checks_passwords_it_has_at_last_two_special_sign(password),
                 self._checks_passwords_it_has_at_least_one_upper_letter(password),
-                len(password) > self.min_size
             )
         )
 
@@ -48,7 +52,6 @@ class PasswordValidator:
         Method return true if the password contains at least two special sign.
         """
         return len(list(sign for sign in password if sign in punctuation)) >= 2
-
 
 
 class AuthTokenSerializer(serializers.Serializer):
@@ -85,6 +88,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         write_only=True,
         required=True,
         trim_whitespace=False,
+        validators=[PasswordValidator(8)],
         style={
             'input_type': 'password',
             'placeholder': 'Password'
@@ -94,6 +98,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         write_only=True,
         required=True,
         validators=[PasswordValidator(8)],
+        trim_whitespace=False,
         style={
             'input_type': 'password',
             'placeholder': 'Repeat password'
@@ -238,7 +243,7 @@ class CreateProfileUserSerializer(serializers.ModelSerializer):
 class AccountDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = PersonalUsersData
-        fields = "__all__"
+        exclude = ['id']
 
 class AccountChangePassword(serializers.Serializer):
     old_password = serializers.CharField(
@@ -288,7 +293,7 @@ class AccountChangePassword(serializers.Serializer):
 
     def save(self):
         user_auth_data = self.validated_data['old_password']
-        user_auth_data.set_password(self.validated_data['password2'])
+        user_auth_data.set_password(self.validated_data['new_password2'])
         user_auth_data.save()
         user = User.objects.get(user_authenticate_date=user_auth_data.id)
         user.email_user(
