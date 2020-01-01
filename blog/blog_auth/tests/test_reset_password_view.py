@@ -21,7 +21,7 @@ class ResetPasswordView(APITestCase):
         self.data_for_auth.save()
         self.user = User(
             user_authenticate_date=self.data_for_auth
-        ) 
+        )
         self.user.save()
 
     def test_with_correct_data(self):

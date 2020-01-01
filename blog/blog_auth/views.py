@@ -60,20 +60,22 @@ class AccountView(GenericViewSet):
         user = User.objects.get(user_authenticate_date=auth_data.id)
         user.user_personal_data = serializer.save()
         user.save()
+        data = dict(serializer.data)
+        data["date_birth"] = user.user_personal_data.date_birth
         return Response(
-            data=serializer.data, 
+            data=data,
             status=status.HTTP_201_CREATED
         )
 
     @action(methods=['PUT'], detail=False)
-    def reset_password(self, request, *args, **kwargs):
-        return self.reset_schema(request, *args, **kwargs)
+    def change_password(self, request, *args, **kwargs):
+        return self.change_schema(request, *args, **kwargs)
 
     @action(methods=['PUT'], detail=False)
-    def reset_email(self, request, *args, **kwargs):
-        return self.reset_schema(request, *args, **kwargs)
+    def change_email(self, request, *args, **kwargs):
+        return self.change_schema(request, *args, **kwargs)
 
-    def reset_schema(self, request, *args, **kwargs):
+    def change_schema(self, request, *args, **kwargs):
         serializer = self.get_serializer_class()(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -82,9 +84,9 @@ class AccountView(GenericViewSet):
     def get_serializer_class(self):
         if self.action == "list":
             return  AccountDetailSerializer
-        elif self.action == "reset_password":
+        elif self.action == "change_password":
             return AccountChangePassword
-        elif self.action == "reset_email":
+        elif self.action == "change_email":
             return AccountChangeEmail
         elif self.action == "create":
             return CreateProfileUserSerializer
