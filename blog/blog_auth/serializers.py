@@ -259,6 +259,7 @@ class AccountChangePassword(serializers.Serializer):
         write_only=True,
         required=True,
         trim_whitespace=False,
+        validators=[PasswordValidator(8)],
         style={
             'input_type': 'password',
             'placeholder': 'Password'
@@ -275,8 +276,8 @@ class AccountChangePassword(serializers.Serializer):
     )
 
     def validate(self, validated_data):
-        password1 = validated_data.get('password1')
-        password2 = validated_data.get('password2')
+        password1 = validated_data.get('new_password1')
+        password2 = validated_data.get('new_password2')
         if password1 and password2 and password1 != password2:
             raise serializers.ValidationError(
                 detail="Two password mismatch."
@@ -305,7 +306,8 @@ class AccountChangePassword(serializers.Serializer):
 
 class AccountChangeEmail(serializers.Serializer):
     old_email = serializers.EmailField()
-    new_email = serializers.EmailField()
+    new_email1 = serializers.EmailField()
+    new_email2 = serializers.EmailField()
 
     def validate_old_email(self, data):
         user_auth_data = self.context.get('request').user
@@ -313,10 +315,24 @@ class AccountChangeEmail(serializers.Serializer):
             raise serializers.ValidationError(
                 detail="Old email mismatch."
             )
+        return user_auth_data
+
+    def validate(self, validated_data):
+        email1 = validated_data.get("new_email1")
+        email2 = validated_data.get("new_email2")
+        if email1 and email2 and email1 != email2:
+            raise serializers.ValidationError(
+                detail="Two email mismatch."
+            )
+        if email1 and DataForAuthenticateUsers.objects.filter(email=email1).exists():
+            raise serializers.ValidationError(
+                detail="A user with that e-mail already exists."
+            )
+        return validated_data
 
     def save(self):
         user_auth_data = self.validated_data['old_email']
-        user_auth_data.email = self.validated_data['new_mail']
+        user_auth_data.email = self.validated_data['new_email1']
         user_auth_data.save()
         user = User.objects.get(user_authenticate_date=user_auth_data.id)
         user.email_user(
