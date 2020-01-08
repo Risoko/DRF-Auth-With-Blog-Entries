@@ -8,6 +8,7 @@ from rest_framework.authtoken.models import Token
 
 from blog_auth.models import DataForAuthenticateUsers, User
 
+
 class TestAccountView(APITestCase):
     def setUp(self):
         self.create_data = {
@@ -37,7 +38,7 @@ class TestAccountView(APITestCase):
         self.data_for_auth.set_password("Tester1996.,")
         self.data_for_auth.save()
         self.user = User(
-            user_authenticate_date=self.data_for_auth
+            user_authenticate_data=self.data_for_auth
         ) 
         self.user.save()
         self.token, _= Token.objects.get_or_create(user=self.data_for_auth)

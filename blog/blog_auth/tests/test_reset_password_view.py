@@ -20,7 +20,7 @@ class ResetPasswordView(APITestCase):
         self.data_for_auth.set_password("Tester123.,")
         self.data_for_auth.save()
         self.user = User(
-            user_authenticate_date=self.data_for_auth
+            user_authenticate_data=self.data_for_auth
         )
         self.user.save()
 

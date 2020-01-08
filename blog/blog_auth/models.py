@@ -1,9 +1,6 @@
-from datetime import date
-
 from django.db import models
 from django.core.mail import send_mail
 from django.contrib.auth.models import AbstractUser
-from django.utils.timezone import datetime
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinLengthValidator
 
@@ -24,7 +21,7 @@ class DataForAuthenticateUsers(AbstractUser):
     )
 
     class Meta:
-        verbose_name = _('Data for authenticate user') 
+        verbose_name = _('Data for authenticate user')
         verbose_name_plural = _('Data for authenticate users')
         ordering = ['date_joined']
 
@@ -83,7 +80,7 @@ class PersonalUsersData(models.Model):
 
 
 class User(models.Model):
-    user_authenticate_date = models.ForeignKey(
+    user_authenticate_data = models.ForeignKey(
         to=DataForAuthenticateUsers,
         on_delete=models.CASCADE,
         related_name='user_fk_auth_data'
@@ -118,27 +115,12 @@ class User(models.Model):
             subject=subject,
             message=message, 
             from_email=from_email, 
-            recipient_list=[self.user_authenticate_date.email,],
+            recipient_list=[self.user_authenticate_data.email,],
             **kwargs
         )
 
-    def check_is_adult(self):
-        """Method check user is adult."""
-        date_birth = self.user_personal_data.date_birth
-        adult_age = date(
-            year=date_birth.year + 18,
-            month=date_birth.month,
-            day=date_birth.day
-        )
-        date_now = date(
-            year=datetime.now().year,
-            month=datetime.now().month,
-            day=datetime.now().day
-        )
-        return adult_age <= date_now
-
     def __str__(self):
-        return self.user_authenticate_date.email #f'User(Nick={self.get_nick()}, Fullname={self.get_full_name()})'
+        return self.user_authenticate_data.email #f'User(Nick={self.get_nick()}, Fullname={self.get_full_name()})'
 
     class Meta:
         verbose_name = _('User')

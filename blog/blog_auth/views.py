@@ -1,13 +1,17 @@
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, UpdateModelMixin
+from rest_framework.mixins import CreateModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet, ViewSet, ModelViewSet
+from rest_framework.viewsets import GenericViewSet, ViewSet
 from rest_framework.authtoken.models import Token
 
-from .serializers import AuthTokenSerializer, RegisterSerializer, ResetPasswordSerializer, CreateProfileUserSerializer, AccountDetailSerializer, AccountChangePassword, AccountChangeEmail
-from .models import DataForAuthenticateUsers, PersonalUsersData, User
+from .serializers import (
+    AuthTokenSerializer, RegisterSerializer, ResetPasswordSerializer,
+    AccountDetailSerializer, AccountChangePassword, AccountChangeEmail,
+    CreateProfileUserSerializer
+)
+from .models import User
 from .permisions import IsNotAuthenticated
 
 
@@ -49,7 +53,7 @@ class AccountView(GenericViewSet):
 
     def list(self, request, *args, **kwargs):
         data_auth_user = request.user
-        user = User.objects.get(user_authenticate_date=data_auth_user)
+        user = User.objects.get(user_authenticate_data=data_auth_user)
         serializer = self.get_serializer_class()(user.user_personal_data)
         return Response(serializer.data)
 
@@ -57,7 +61,7 @@ class AccountView(GenericViewSet):
         serializer = self.get_serializer_class()(data=request.data)
         serializer.is_valid(raise_exception=True)
         auth_data = request.user
-        user = User.objects.get(user_authenticate_date=auth_data.id)
+        user = User.objects.get(user_authenticate_data=auth_data.id)
         user.user_personal_data = serializer.save()
         user.save()
         data = dict(serializer.data)

@@ -18,7 +18,7 @@ class TestLoginView(APITestCase):
         data_for_auth.set_password("Tester123.,")
         data_for_auth.save()
         self.user = User(
-            user_authenticate_date=data_for_auth
+            user_authenticate_data=data_for_auth
         ) 
         self.user.save()
         self.token, _= Token.objects.get_or_create(user=data_for_auth)

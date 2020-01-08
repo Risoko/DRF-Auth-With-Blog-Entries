@@ -132,7 +132,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         new_data_for_auth.set_password(validated_data['password1'])
         new_data_for_auth.save()
-        user = User(user_authenticate_date=new_data_for_auth)
+        user = User(user_authenticate_data=new_data_for_auth)
         user.save()
         return new_data_for_auth
 
@@ -171,7 +171,7 @@ class ResetPasswordSerializer(serializers.Serializer):
 
     def save(self):
         user_auth_data = self.validated_data['user_auth_data']
-        user = User.objects.get(user_authenticate_date=user_auth_data.id)
+        user = User.objects.get(user_authenticate_data=user_auth_data.id)
         new_password = self.get_new_password()
         user_auth_data.set_password(new_password)
         user_auth_data.save()
@@ -296,7 +296,7 @@ class AccountChangePassword(serializers.Serializer):
         user_auth_data = self.validated_data['old_password']
         user_auth_data.set_password(self.validated_data['new_password2'])
         user_auth_data.save()
-        user = User.objects.get(user_authenticate_date=user_auth_data.id)
+        user = User.objects.get(user_authenticate_data=user_auth_data.id)
         user.email_user(
             subject="Change Password.",
             message="You have changed password if you do not urgently reset the password",
@@ -334,16 +334,9 @@ class AccountChangeEmail(serializers.Serializer):
         user_auth_data = self.validated_data['old_email']
         user_auth_data.email = self.validated_data['new_email1']
         user_auth_data.save()
-        user = User.objects.get(user_authenticate_date=user_auth_data.id)
+        user = User.objects.get(user_authenticate_data=user_auth_data.id)
         user.email_user(
             subject="Change Email.",
             message="You have changed email if you do not urgently write to support.",
             from_email="Blog administration."
         )
-
-
-
-
-
-        
-    

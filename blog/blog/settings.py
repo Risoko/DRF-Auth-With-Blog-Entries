@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'blog_auth.apps.BlogAuthConfig',
     'rest_framework.authtoken',
-    'rest_framework'
+    'rest_framework',
+    'blog_entries.apps.BlogEntriesConfig'
 
 ]
 
