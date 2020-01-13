@@ -87,8 +87,12 @@ AUTH_USER_MODEL = 'blog_auth.DataForAuthenticateUsers'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'blog',
+        'USER': 'test',
+        'PASSWORD': 'test123',
+        'HOST': 'db',
+        'PORT': 5432,
     }
 }
 
@@ -98,11 +102,11 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # Settings for smtp server for send email.
-EMAIL_HOST = config('EMAIL_HOST')
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
-EMAIL_PORT = config('EMAIL_PORT', cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
+#EMAIL_HOST = config('EMAIL_HOST')
+#EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+#EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+#EMAIL_PORT = config('EMAIL_PORT', cast=int)
+#EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
 
 
 # Password validation

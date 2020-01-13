@@ -1,0 +1,29 @@
+version: "3"
+
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_DB: blog
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test123
+  pgadmin4:
+    image: dpage/pgadmin4
+    environment: 
+      PGADMIN_DEFAULT_EMAIL: example@email.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5555:80"
+    depends_on:
+      - db
+  web:
+    build:
+      context: .
+    volumes: 
+      - ./app:/app
+    command: >
+      sh -c "python blog/manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    depends_on: 
+      - db
